@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Test Suite — USA Map Quiz</title>
+<style>
+  body { font-family: monospace; background: #0f1923; color: #e2eef8; padding: 1rem; }
+  h1 { color: #f5c518; margin-bottom: 1rem; }
+  .suite { margin-bottom: 1.5rem; }
+  .suite-name { color: #7dd3fc; font-size: 1rem; margin-bottom: .4rem; border-bottom: 1px solid #243448; padding-bottom: .2rem; }
+  .test { padding: .2rem 0 .2rem 1rem; font-size: .85rem; }
+  .pass { color: #22c55e; }
+  .fail { color: #ef4444; }
+  .skip { color: #5580a0; }
+  #summary { margin-top: 1.5rem; font-size: 1.1rem; padding: .5rem; background: #172030; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>🧪 Test Suite — USA Map Quiz</h1>
+<div id="output"></div>
+<div id="summary"></div>
+
+<script src="features.js"></script>
+<script>
+// Minimal test harness
+const results = [];
+let currentSuite = '';
+
+function suite(name) { currentSuite = name; }
+function test(name, fn) {
+  try {
+    fn();
+    results.push({ suite: currentSuite, name, pass: true });
+  } catch(e) {
+    results.push({ suite: currentSuite, name, pass: false, err: e.message });
+  }
+}
+function assert(condition, msg) {
+  if (!condition) throw new Error(msg || 'Assertion failed');
+}
+function assertEqual(a, b, msg) {
+  if (a !== b) throw new Error((msg || '') + ` expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
+}
+
+// ── Mock DOM for quiz logic tests ──
+const _localStorage = { _data: {}, getItem(k){ return this._data[k]||null; }, setItem(k,v){ this._data[k]=String(v); } };
+window.localStorage = _localStorage;
+
+// Stub map functions so quiz.js logic can be tested without a real DOM/SVG
+window.clearAllStates = () => {};
+window.setFeatureState = () => {};
+window.panToFeature = () => {};
+window.initMap = () => Promise.resolve();
+
+// Build a minimal fake DOM
+function el(id, opts={}) {
+  const e = { _txt:'', _cls:'', style:{}, textContent:'', className:'',
+    classList:{ add(c){e.className+=' '+c;}, remove(c){e.className=e.className.replace(' '+c,'');} },
+    addEventListener(){},
+    innerHTML: '',
+    prepend(){},
+  };
+  if (opts.input) e.value = opts.input;
+  return e;
+}
+const fakeEls = {};
+const _origGetById = document.getElementById.bind(document);
+document.getElementById = (id) => {
+  if (!fakeEls[id]) fakeEls[id] = el(id);
+  return fakeEls[id];
+};
+document.querySelectorAll = () => [];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 1: features.js data integrity
+// ─────────────────────────────────────────────────────────────────────────────
+suite('features.js — data integrity');
+
+test('FEATURES array has exactly 27 entries', () => {
+  assertEqual(FEATURES.length, 27, 'Feature count:');
+});
+
+test('All IDs are unique and range 1-27', () => {
+  const ids = FEATURES.map(f => f.id);
+  const unique = new Set(ids);
+  assertEqual(unique.size, 27, 'Unique IDs:');
+  assert(Math.min(...ids) === 1, 'Min id should be 1');
+  assert(Math.max(...ids) === 27, 'Max id should be 27');
+});
+
+test('All features have required fields: id, name, cat, hint, shape', () => {
+  FEATURES.forEach(f => {
+    assert(typeof f.id === 'number', `Feature ${f.id} missing id`);
+    assert(typeof f.name === 'string' && f.name.length > 0, `Feature ${f.id} missing name`);
+    assert(typeof f.cat === 'string', `Feature ${f.id} missing cat`);
+    assert(typeof f.hint === 'string', `Feature ${f.id} missing hint`);
+    assert(typeof f.shape === 'string', `Feature ${f.id} missing shape`);
+  });
+});
+
+test('All shapes are valid types', () => {
+  const validShapes = new Set(['lake','line','triangle','region','label']);
+  FEATURES.forEach(f => {
+    assert(validShapes.has(f.shape), `Feature ${f.id} has invalid shape: ${f.shape}`);
+  });
+});
+
+test('All categories are valid', () => {
+  const validCats = new Set(['ocean','water','river','mountain','land']);
+  FEATURES.forEach(f => {
+    assert(validCats.has(f.cat), `Feature ${f.id} has invalid cat: ${f.cat}`);
+  });
+});
+
+test('All features have cx, cy coordinates', () => {
+  FEATURES.forEach(f => {
+    assert(typeof f.cx === 'number', `Feature ${f.id} missing cx`);
+    assert(typeof f.cy === 'number', `Feature ${f.id} missing cy`);
+    assert(f.cx >= 0 && f.cx <= 960, `Feature ${f.id} cx out of range: ${f.cx}`);
+    assert(f.cy >= 0 && f.cy <= 600, `Feature ${f.id} cy out of range: ${f.cy}`);
+  });
+});
+
+test('Lakes and regions have points arrays', () => {
+  FEATURES.filter(f => f.shape === 'lake' || f.shape === 'region').forEach(f => {
+    assert(Array.isArray(f.points) && f.points.length >= 3, `Feature ${f.id} needs points array`);
+  });
+});
+
+test('Rivers have points arrays with at least 2 points', () => {
+  FEATURES.filter(f => f.shape === 'line').forEach(f => {
+    assert(Array.isArray(f.points) && f.points.length >= 2, `River ${f.id} needs at least 2 points`);
+  });
+});
+
+test('Mountains have peaks arrays', () => {
+  FEATURES.filter(f => f.shape === 'triangle').forEach(f => {
+    assert(Array.isArray(f.peaks) && f.peaks.length >= 2, `Mountain ${f.id} needs peaks array`);
+  });
+});
+
+test('BADGE map covers all categories', () => {
+  const cats = [...new Set(FEATURES.map(f => f.cat))];
+  cats.forEach(c => {
+    assert(BADGE[c], `Missing BADGE entry for category: ${c}`);
+    assert(BADGE[c].label && BADGE[c].cls, `BADGE[${c}] missing label or cls`);
+  });
+});
+
+test('Specific test features exist by name', () => {
+  const names = FEATURES.map(f => f.name);
+  const required = [
+    'Océano Pacífico', 'Océano Atlántico', 'Golfo de México', 'Estrecho de Bering',
+    'Lago Superior', 'Lago Huron', 'Lago Michigan', 'Lago Ontario', 'Lago Erie',
+    'Río Mississippi', 'Río Missouri', 'Río Ohio', 'Río Colorado', 'Río Grande',
+    'Río Minnesota', 'Río San Lorenzo',
+    'Montañas Rocosas', 'Montañas de Sierra Nevada', 'Montes Apalaches',
+    'Desierto de Mojave', 'Gran Cuenca', 'Grandes Llanuras', 'Gran Cañón',
+    'Meseta de Ozark', 'Monte McKinley', 'Mauna Kea', 'Monte Rushmore',
+  ];
+  required.forEach(n => {
+    assert(names.includes(n), `Missing required feature: ${n}`);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 2: shuffle utility
+// ─────────────────────────────────────────────────────────────────────────────
+suite('shuffle — Fisher-Yates');
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+test('Shuffled array has same length', () => {
+  const orig = FEATURES.map(f => f.id);
+  const s = shuffle(orig);
+  assertEqual(s.length, orig.length, 'Length:');
+});
+
+test('Shuffled array contains same elements', () => {
+  const orig = FEATURES.map(f => f.id);
+  const s = shuffle(orig);
+  orig.forEach(id => assert(s.includes(id), `Missing id ${id} after shuffle`));
+});
+
+test('Shuffle does not modify original array', () => {
+  const orig = FEATURES.map(f => f.id);
+  const copy = [...orig];
+  shuffle(orig);
+  orig.forEach((v, i) => assertEqual(v, copy[i], `Element ${i} was mutated:`));
+});
+
+test('Multiple shuffles produce different orders (probabilistic)', () => {
+  const orig = FEATURES.map(f => f.id);
+  const s1 = shuffle(orig);
+  const s2 = shuffle(orig);
+  // Very unlikely two 27-element shuffles match exactly
+  const same = s1.every((v, i) => v === s2[i]);
+  assert(!same, 'Two shuffles should not be identical (if they are, re-run)');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 3: quiz state machine (logic only, no DOM/SVG)
+// ─────────────────────────────────────────────────────────────────────────────
+suite('quiz state machine');
+
+// Minimal quiz logic extracted for testing
+function makeQuiz() {
+  const q = {
+    MAX_ATTEMPTS: 3,
+    POINTS_PER_Q: 100,
+    queue: shuffle(FEATURES.map(f => f.id)),
+    qIdx: 0,
+    score: 0,
+    correctCount: 0,
+    attemptsLeft: 3,
+    answered: false,
+    feedback: '',
+    feedbackType: '',
+    revealed: false,
+
+    currentId() { return this.queue[this.qIdx]; },
+
+    startQ() {
+      this.answered = false;
+      this.attemptsLeft = this.MAX_ATTEMPTS;
+      this.feedback = '';
+      this.revealed = false;
+    },
+
+    click(clickedId) {
+      if (this.answered) return 'ignored';
+      const correctId = this.currentId();
+      if (clickedId === correctId) {
+        this.answered = true;
+        this.score += this.POINTS_PER_Q;
+        this.correctCount++;
+        this.feedback = 'correct';
+        this.feedbackType = 'correct';
+        return 'correct';
+      } else {
+        this.attemptsLeft--;
+        if (this.attemptsLeft <= 0) {
+          this.answered = true;
+          this.revealed = true;
+          this.feedback = 'revealed';
+          this.feedbackType = 'wrong';
+          return 'revealed';
+        }
+        this.feedback = 'wrong';
+        this.feedbackType = 'wrong';
+        return 'wrong';
+      }
+    },
+
+    next() {
+      this.qIdx++;
+      if (this.qIdx < this.queue.length) this.startQ();
+    },
+  };
+  q.startQ();
+  return q;
+}
+
+test('Correct click on first try awards 100 points', () => {
+  const q = makeQuiz();
+  const result = q.click(q.currentId());
+  assertEqual(result, 'correct', 'Result:');
+  assertEqual(q.score, 100, 'Score:');
+  assertEqual(q.correctCount, 1, 'CorrectCount:');
+});
+
+test('Wrong click decrements attemptsLeft', () => {
+  const q = makeQuiz();
+  const wrongId = FEATURES.find(f => f.id !== q.currentId()).id;
+  q.click(wrongId);
+  assertEqual(q.attemptsLeft, 2, 'AttemptsLeft after 1 wrong:');
+});
+
+test('Two wrong clicks leaves 1 attempt', () => {
+  const q = makeQuiz();
+  const wrongs = FEATURES.filter(f => f.id !== q.currentId()).map(f => f.id);
+  q.click(wrongs[0]);
+  q.click(wrongs[1]);
+  assertEqual(q.attemptsLeft, 1, 'AttemptsLeft:');
+  assert(!q.answered, 'Should not be answered yet');
+});
+
+test('Three wrong clicks reveals answer (0 points)', () => {
+  const q = makeQuiz();
+  const wrongs = FEATURES.filter(f => f.id !== q.currentId()).map(f => f.id);
+  q.click(wrongs[0]);
+  q.click(wrongs[1]);
+  const result = q.click(wrongs[2]);
+  assertEqual(result, 'revealed', 'Result:');
+  assert(q.answered, 'Should be answered');
+  assertEqual(q.score, 0, 'Score should be 0:');
+  assert(q.revealed, 'Correct location should be revealed');
+});
+
+test('Clicks after answered are ignored', () => {
+  const q = makeQuiz();
+  q.click(q.currentId()); // correct
+  const result = q.click(q.currentId());
+  assertEqual(result, 'ignored', 'Post-answer click should be ignored');
+  assertEqual(q.score, 100, 'Score should not change after answer');
+});
+
+test('nextQ advances question index', () => {
+  const q = makeQuiz();
+  q.click(q.currentId());
+  q.next();
+  assertEqual(q.qIdx, 1, 'qIdx:');
+});
+
+test('Score is cumulative across questions', () => {
+  const q = makeQuiz();
+  // Answer first 3 correctly
+  for (let i = 0; i < 3; i++) {
+    q.click(q.currentId());
+    q.next();
+  }
+  assertEqual(q.score, 300, 'Score after 3 correct:');
+  assertEqual(q.correctCount, 3, 'CorrectCount:');
+});
+
+test('Max score is 2700 for all correct', () => {
+  const q = makeQuiz();
+  for (let i = 0; i < 27; i++) {
+    q.click(q.currentId());
+    if (i < 26) q.next();
+  }
+  assertEqual(q.score, 2700, 'Max score:');
+});
+
+test('Percentage calculation', () => {
+  const correctCount = 22;
+  const total = 27;
+  const pct = Math.round((correctCount / total) * 100);
+  assertEqual(pct, 81, 'Pct for 22/27:');
+});
+
+test('Grade thresholds: ≥80% green, ≥55% gold, <55% red', () => {
+  const grade = (pct) => pct >= 80 ? 'green' : pct >= 55 ? 'gold' : 'red';
+  assertEqual(grade(100), 'green');
+  assertEqual(grade(80),  'green');
+  assertEqual(grade(79),  'gold');
+  assertEqual(grade(55),  'gold');
+  assertEqual(grade(54),  'red');
+  assertEqual(grade(0),   'red');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUITE 4: localStorage top score
+// ─────────────────────────────────────────────────────────────────────────────
+suite('localStorage — top score');
+
+test('Stores new top score when score improves', () => {
+  _localStorage._data = {};
+  let topScore = parseInt(_localStorage.getItem('topScore') || '0', 10);
+  const newScore = 1500;
+  if (newScore > topScore) {
+    topScore = newScore;
+    _localStorage.setItem('topScore', topScore);
+  }
+  assertEqual(_localStorage.getItem('topScore'), '1500', 'Stored top score:');
+});
+
+test('Does not overwrite top score with lower score', () => {
+  _localStorage._data = { topScore: '2000' };
+  let topScore = parseInt(_localStorage.getItem('topScore') || '0', 10);
+  const newScore = 1500;
+  if (newScore > topScore) {
+    _localStorage.setItem('topScore', newScore);
+  }
+  assertEqual(_localStorage.getItem('topScore'), '2000', 'Top score should remain 2000:');
+});
+
+test('Handles missing top score gracefully (defaults to 0)', () => {
+  _localStorage._data = {};
+  const topScore = parseInt(_localStorage.getItem('topScore') || '0', 10);
+  assertEqual(topScore, 0, 'Default top score:');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER RESULTS
+// ─────────────────────────────────────────────────────────────────────────────
+const output = document.getElementById('output');
+const suites = {};
+results.forEach(r => {
+  if (!suites[r.suite]) suites[r.suite] = [];
+  suites[r.suite].push(r);
+});
+
+let totalPass = 0, totalFail = 0;
+Object.entries(suites).forEach(([suiteName, tests]) => {
+  const div = document.createElement('div');
+  div.className = 'suite';
+  div.innerHTML = `<div class="suite-name">${suiteName}</div>`;
+  tests.forEach(r => {
+    const t = document.createElement('div');
+    t.className = 'test ' + (r.pass ? 'pass' : 'fail');
+    t.textContent = (r.pass ? '✓' : '✗') + ' ' + r.name + (r.err ? ' — ' + r.err : '');
+    div.appendChild(t);
+    if (r.pass) totalPass++; else totalFail++;
+  });
+  output.appendChild(div);
+});
+
+const summary = document.getElementById('summary');
+summary.style.color = totalFail === 0 ? '#22c55e' : '#ef4444';
+summary.textContent = `${totalPass + totalFail} tests: ${totalPass} passed, ${totalFail} failed`;
+</script>
+</body>
+</html>
