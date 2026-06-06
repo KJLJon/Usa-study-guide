@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Físico — EE.UU.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="screen-title" class="screen active">
+  <div class="title-bg"></div>
+  <div class="title-content">
+    <div class="title-logo">MAPA <span class="gold">FÍSICO</span></div>
+    <div class="title-sub">EE.UU. — Características Físicas</div>
+    <div class="title-info">27 características · preguntas aleatorias · 3 intentos</div>
+    <div id="top-score-display" class="top-score" style="display:none">
+      <span class="dim">Mejor puntaje:</span> <span id="top-score-val" class="gold"></span>
+    </div>
+    <button id="btn-play" class="btn-play">JUGAR →</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">MAPA <span class="gold">FÍSICO</span></div>
+    <div class="topbar-mid">
+      <span class="dim">Pregunta</span>
+      <span id="q-counter" class="gold"> 1 / 27</span>
+    </div>
+    <div class="topbar-score">
+      <span class="dim">PUNTAJE</span>
+      <span id="score-display" class="gold">0</span>
+    </div>
+  </div>
+  <div class="progress-bar-wrap"><div id="progress-bar" class="progress-bar"></div></div>
+
+  <div class="game-body">
+    <!-- MAP PANE -->
+    <div id="map-pane" class="map-pane">
+      <div id="map-wrap">
+        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-question">
+        <div class="sidebar-prompt">ENCUENTRA EN EL MAPA:</div>
+        <div id="feature-name" class="feature-name"></div>
+        <div id="feature-hint" class="feature-hint"></div>
+        <div id="feature-badge" class="feature-badge"></div>
+        <div id="attempts-display" class="attempts-display"></div>
+      </div>
+
+      <div class="sidebar-instructions">
+        <strong>Haz click</strong> en la ubicación correcta.<br>
+        Tienes <strong>3 intentos</strong> por pregunta.
+      </div>
+
+      <div class="hist-panel">
+        <div class="hist-title">RESPUESTAS ANTERIORES</div>
+        <div id="hist-list" class="hist-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <div id="feedback" class="feedback"></div>
+    <button id="btn-next" class="btn-next hidden">SIGUIENTE →</button>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="screen-results" class="screen">
+  <div class="results-content">
+    <div id="result-pct" class="result-pct"></div>
+    <div class="result-label">PUNTAJE FINAL</div>
+    <div class="result-stats">
+      <div class="stat-box">
+        <div id="stat-correct" class="stat-num"></div>
+        <div class="stat-lbl">Correctas</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">27</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-box">
+        <div id="stat-score" class="stat-num gold"></div>
+        <div class="stat-lbl">Puntos</div>
+      </div>
+    </div>
+    <div id="new-top-score" class="new-top" style="display:none">🏆 ¡Nuevo mejor puntaje!</div>
+    <div class="result-btns">
+      <button id="btn-repeat" class="btn-secondary">↺ REPETIR</button>
+      <button id="btn-menu" class="btn-play">MENÚ →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="features.js"></script>
+<script src="map.js"></script>
+<script src="quiz.js"></script>
+</body>
+</html>
