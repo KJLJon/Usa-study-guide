@@ -39,37 +39,37 @@ const FEATURES = [
     id: 5, name: "Lago Superior", cat: "water",
     hint: "El más grande de los Grandes Lagos",
     shape: "lake",
-    cx: 645, cy: 145,
-    // rough polygon points for Lake Superior
-    points: [[590,130],[610,120],[640,115],[670,118],[695,125],[705,138],[700,152],[680,158],[655,160],[625,155],[600,148],[588,140]],
+    cx: 628, cy: 145,
+    // shifted ~17px left to match AlbersUSA projection
+    points: [[572,130],[592,120],[622,115],[652,118],[678,125],[688,138],[683,152],[663,158],[638,160],[608,155],[582,148],[570,140]],
   },
   {
     id: 6, name: "Lago Huron", cat: "water",
     hint: "Al este de la Península de Michigan",
     shape: "lake",
-    cx: 720, cy: 170,
-    points: [[705,145],[720,140],[735,148],[745,160],[748,175],[742,190],[730,195],[715,190],[705,178],[703,162]],
+    cx: 703, cy: 170,
+    points: [[688,145],[703,140],[718,148],[728,160],[731,175],[725,190],[713,195],[698,190],[688,178],[686,162]],
   },
   {
     id: 7, name: "Lago Michigan", cat: "water",
     hint: "El único de los Grandes Lagos completamente dentro de EE.UU.",
     shape: "lake",
-    cx: 682, cy: 178,
-    points: [[672,148],[682,142],[692,150],[695,165],[693,182],[685,196],[675,198],[668,188],[665,172],[667,158]],
+    cx: 665, cy: 178,
+    points: [[655,148],[665,142],[675,150],[678,165],[676,182],[668,196],[658,198],[651,188],[648,172],[650,158]],
   },
   {
     id: 8, name: "Lago Ontario", cat: "water",
     hint: "El más pequeño de los Grandes Lagos — al norte de Nueva York",
     shape: "lake",
-    cx: 770, cy: 168,
-    points: [[750,162],[762,158],[778,160],[790,166],[792,174],[780,178],[762,178],[750,172]],
+    cx: 753, cy: 168,
+    points: [[733,162],[745,158],[761,160],[773,166],[775,174],[763,178],[745,178],[733,172]],
   },
   {
     id: 9, name: "Lago Erie", cat: "water",
     hint: "El más poco profundo de los Grandes Lagos",
     shape: "lake",
-    cx: 748, cy: 188,
-    points: [[730,184],[742,180],[758,180],[768,184],[770,192],[756,196],[740,196],[728,192]],
+    cx: 731, cy: 188,
+    points: [[713,184],[725,180],[741,180],[751,184],[753,192],[739,196],[723,196],[711,192]],
   },
 
   // ─── RIVERS ───
@@ -77,29 +77,30 @@ const FEATURES = [
     id: 10, name: "Río Mississippi", cat: "river",
     hint: "El río más largo de EE.UU. — corre de norte a sur hasta el Golfo de México",
     shape: "line",
-    cx: 620, cy: 320,
-    points: [[650,155],[645,180],[638,210],[628,240],[620,270],[615,300],[612,330],[610,360],[615,390],[618,420],[622,450],[625,480],[620,510],[618,535]],
+    cx: 610, cy: 345,
+    // source: Lake Itasca 95.2°W,47.2°N (y≈183) → Twin Cities → St. Louis 90°W,38.6°N (y≈305) → Gulf
+    points: [[540,183],[545,197],[550,212],[562,228],[575,248],[588,265],[600,285],[608,305],[612,325],[614,350],[614,375],[614,400],[616,425],[618,455],[618,480],[617,505],[618,535]],
   },
   {
     id: 11, name: "Río Missouri", cat: "river",
     hint: "Afluente más largo del Mississippi — viene desde Montana hacia el este",
     shape: "line",
     cx: 520, cy: 220,
-    points: [[290,185],[320,188],[355,190],[390,192],[425,195],[460,200],[495,205],[530,210],[565,215],[595,222],[618,235]],
+    points: [[290,185],[320,188],[355,190],[390,192],[425,195],[460,200],[495,205],[530,210],[560,218],[585,228],[605,248],[612,275],[612,305]],
   },
   {
     id: 12, name: "Río Ohio", cat: "river",
     hint: "Corre de Pittsburgh hacia el oeste hasta el Mississippi",
     shape: "line",
-    cx: 700, cy: 255,
-    points: [[790,228],[770,235],[745,242],[718,248],[692,253],[665,258],[640,262],[618,268]],
+    cx: 710, cy: 275,
+    points: [[790,228],[768,240],[745,252],[722,262],[702,275],[682,292],[662,310],[648,325],[635,338],[614,342]],
   },
   {
     id: 13, name: "Río Colorado", cat: "river",
     hint: "Formó el Gran Cañón — desemboca en el Golfo de California",
     shape: "line",
-    cx: 295, cy: 310,
-    points: [[355,205],[345,225],[335,248],[322,268],[310,288],[300,308],[292,328],[285,350],[278,372],[272,395]],
+    cx: 318, cy: 352,
+    points: [[378,278],[365,300],[350,320],[335,340],[320,358],[305,375],[290,392],[276,408],[265,422]],
   },
   {
     id: 14, name: "Río Grande", cat: "river",
@@ -112,8 +113,9 @@ const FEATURES = [
     id: 15, name: "Río Minnesota", cat: "river",
     hint: "Corre por el sur de Minnesota hacia el Mississippi",
     shape: "line",
-    cx: 588, cy: 188,
-    points: [[510,188],[530,192],[552,193],[572,192],[590,190],[608,190],[622,196]],
+    cx: 535, cy: 211,
+    // Big Stone Lake 96.4°W,45.6°N (x≈518,y≈207) → Twin Cities 93°W,44.9°N meets Mississippi (x≈553,y≈215)
+    points: [[518,207],[528,210],[540,212],[553,215]],
   },
   {
     id: 16, name: "Río San Lorenzo", cat: "river",
@@ -128,9 +130,9 @@ const FEATURES = [
     id: 17, name: "Montañas Rocosas", cat: "mountain",
     hint: "Gran cordillera al oeste — de Alaska a Nuevo México",
     shape: "triangle",
-    cx: 340, cy: 250,
-    // multiple triangles along the range
-    peaks: [[305,195],[325,240],[340,195],[360,235],[380,195],[398,240],[415,195],[430,238],[445,200],[458,242],[470,205],[480,248],[490,218],[498,260],[505,230],[510,272]],
+    cx: 342, cy: 272,
+    // peaks cover Montana → Wyoming → Colorado → New Mexico (N to S)
+    peaks: [[295,155],[308,192],[308,172],[322,210],[318,200],[332,238],[330,225],[344,262],[342,252],[356,290],[354,275],[368,312],[362,300],[375,338],[368,325],[380,362]],
   },
   {
     id: 18, name: "Montañas de Sierra Nevada", cat: "mountain",
@@ -143,8 +145,9 @@ const FEATURES = [
     id: 19, name: "Montes Apalaches", cat: "mountain",
     hint: "Antigua cordillera al este de EE.UU. — de Alabama a Maine",
     shape: "triangle",
-    cx: 790, cy: 260,
-    peaks: [[800,165],[808,195],[816,168],[822,198],[828,172],[834,202],[840,175],[845,206],[850,180],[854,210],[858,186],[860,215],[862,195],[862,222]],
+    cx: 808, cy: 292,
+    // peaks cover Maine → Pennsylvania (north) → Virginia → North Carolina → Alabama (south)
+    peaks: [[862,168],[862,195],[855,172],[856,200],[848,176],[850,205],[840,180],[842,208],[832,185],[834,215],[820,192],[822,222],[808,220],[810,248],[798,248],[800,278],[785,278],[787,308],[770,308],[772,338],[758,338],[760,368],[748,368],[750,395],[738,395],[740,422]],
   },
 
   // ─── LAND FEATURES ───
@@ -152,8 +155,9 @@ const FEATURES = [
     id: 20, name: "Desierto de Mojave", cat: "land",
     hint: "Desierto caliente en California/Nevada",
     shape: "region",
-    cx: 215, cy: 318,
-    points: [[188,295],[230,290],[258,298],[262,315],[258,335],[235,345],[205,340],[185,325]],
+    cx: 210, cy: 358,
+    // 116.5°W, 34.5°N → x≈205, y≈362 (below Great Basin, SE California/S Nevada)
+    points: [[185,340],[218,335],[248,342],[255,358],[250,375],[228,382],[200,376],[183,360]],
   },
   {
     id: 21, name: "Gran Cuenca", cat: "land",
@@ -173,15 +177,17 @@ const FEATURES = [
     id: 23, name: "Gran Cañón", cat: "land",
     hint: "En Arizona — tallado por el Río Colorado durante millones de años",
     shape: "region",
-    cx: 295, cy: 335,
-    points: [[278,325],[298,322],[312,328],[315,342],[310,352],[292,355],[275,348],[272,338]],
+    cx: 273, cy: 340,
+    // 112.1°W, 36.1°N → x=618-(112.1-90)*15.6=273, y=305+(38.6-36.1)*14=340
+    points: [[255,330],[275,324],[292,332],[295,346],[290,360],[272,364],[253,358],[248,344]],
   },
   {
     id: 24, name: "Meseta de Ozark", cat: "land",
     hint: "Región montañosa en Missouri y Arkansas",
     shape: "region",
-    cx: 620, cy: 340,
-    points: [[588,318],[618,312],[645,318],[655,335],[648,355],[622,362],[595,355],[582,340]],
+    cx: 562, cy: 335,
+    // 93.5°W, 36.5°N → x=618-(93.5-90)*15.6=563, y=305+(38.6-36.5)*14=334
+    points: [[535,318],[562,312],[588,318],[598,335],[588,355],[562,362],[535,355],[522,340]],
   },
   {
     id: 25, name: "Monte McKinley", cat: "mountain",
@@ -201,8 +207,9 @@ const FEATURES = [
     id: 27, name: "Monte Rushmore", cat: "mountain",
     hint: "En Dakota del Sur — cuatro presidentes esculpidos en roca",
     shape: "triangle",
-    cx: 488, cy: 198,
-    peaks: [[480,194],[488,182],[496,194]],
+    cx: 407, cy: 231,
+    // 103.5°W, 43.9°N → x=618-(103.5-90)*15.6=407, y=305+(38.6-43.9)*14=231
+    peaks: [[399,227],[407,215],[415,227]],
   },
 ];
 
