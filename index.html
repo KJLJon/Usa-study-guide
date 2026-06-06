@@ -53,7 +53,8 @@
       <div class="sidebar-question">
         <div class="sidebar-prompt">ENCUENTRA EN EL MAPA:</div>
         <div id="feature-name" class="feature-name"></div>
-        <div id="feature-hint" class="feature-hint"></div>
+        <button id="hint-toggle" class="hint-toggle-btn">💡 Mostrar pista</button>
+        <div id="feature-hint" class="feature-hint" style="display:none"></div>
         <div id="feature-badge" class="feature-badge"></div>
         <div id="attempts-display" class="attempts-display"></div>
       </div>
@@ -63,9 +64,17 @@
         Tienes <strong>3 intentos</strong> por pregunta.
       </div>
 
-      <div class="hist-panel">
-        <div class="hist-title">RESPUESTAS ANTERIORES</div>
+      <!-- TABS: History + Legend -->
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" data-tab="hist">HISTORIAL</button>
+        <button class="tab-btn" data-tab="legend">LEYENDA</button>
+      </div>
+
+      <div class="tab-panel" data-panel="hist">
         <div id="hist-list" class="hist-list"></div>
+      </div>
+      <div class="tab-panel hidden" data-panel="legend">
+        <div id="legend-list" class="legend-list"></div>
       </div>
     </div>
   </div>
