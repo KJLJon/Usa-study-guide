@@ -212,13 +212,14 @@ suite('quiz state machine');
 
 // Minimal quiz logic extracted for testing
 function makeQuiz() {
+  const POINTS_TABLE = [100, 50, 25];
   const q = {
     MAX_ATTEMPTS: 3,
-    POINTS_PER_Q: 100,
     queue: shuffle(FEATURES.map(f => f.id)),
     qIdx: 0,
     score: 0,
     correctCount: 0,
+    firstTryCount: 0,
     attemptsLeft: 3,
     answered: false,
     feedback: '',
@@ -238,8 +239,11 @@ function makeQuiz() {
       if (this.answered) return 'ignored';
       const correctId = this.currentId();
       if (clickedId === correctId) {
+        const attemptsUsed = this.MAX_ATTEMPTS - this.attemptsLeft;
+        const pts = POINTS_TABLE[attemptsUsed] ?? 0;
+        if (attemptsUsed === 0) this.firstTryCount++;
         this.answered = true;
-        this.score += this.POINTS_PER_Q;
+        this.score += pts;
         this.correctCount++;
         this.feedback = 'correct';
         this.feedbackType = 'correct';
@@ -274,6 +278,28 @@ test('Correct click on first try awards 100 points', () => {
   assertEqual(result, 'correct', 'Result:');
   assertEqual(q.score, 100, 'Score:');
   assertEqual(q.correctCount, 1, 'CorrectCount:');
+  assertEqual(q.firstTryCount, 1, 'FirstTryCount:');
+});
+
+test('Correct on 2nd try awards 50 points, no firstTryCount', () => {
+  const q = makeQuiz();
+  const wrongId = FEATURES.find(f => f.id !== q.currentId()).id;
+  q.click(wrongId);
+  const result = q.click(q.currentId());
+  assertEqual(result, 'correct', 'Result:');
+  assertEqual(q.score, 50, 'Score:');
+  assertEqual(q.firstTryCount, 0, 'FirstTryCount should be 0:');
+});
+
+test('Correct on 3rd try awards 25 points, no firstTryCount', () => {
+  const q = makeQuiz();
+  const wrongs = FEATURES.filter(f => f.id !== q.currentId()).map(f => f.id);
+  q.click(wrongs[0]);
+  q.click(wrongs[1]);
+  const result = q.click(q.currentId());
+  assertEqual(result, 'correct', 'Result:');
+  assertEqual(q.score, 25, 'Score:');
+  assertEqual(q.firstTryCount, 0, 'FirstTryCount should be 0:');
 });
 
 test('Wrong click decrements attemptsLeft', () => {
