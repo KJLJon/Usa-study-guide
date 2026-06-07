@@ -1,0 +1,4 @@
+node_modules/
+*.bak
+screenshot-*.png
+map-render.svg

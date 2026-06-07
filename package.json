@@ -1,0 +1,16 @@
+{
+  "name": "usa-study-guide",
+  "version": "1.0.0",
+  "description": "USA physical geography quiz",
+  "scripts": {
+    "screenshot": "node screenshot.js",
+    "screenshot:fix": "node screenshot.js --fix",
+    "test": "node run-tests.js"
+  },
+  "dependencies": {
+    "d3-geo": "^3.1.1",
+    "jsdom": "^29.1.1",
+    "puppeteer": "^22.0.0",
+    "topojson-client": "^3.1.0"
+  }
+}
