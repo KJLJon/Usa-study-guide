@@ -203,6 +203,12 @@ body {
 .feature-hit.state-revealed .river-path       { stroke: #f97316; stroke-width: 5; opacity: 1; }
 .feature-hit.state-revealed .ocean-clickzone  { fill: rgba(249,115,22,.2); stroke: #f97316; stroke-width: 2.5; stroke-dasharray: none; }
 
+@keyframes reveal-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.15; }
+}
+.feature-hit.state-revealed { animation: reveal-pulse 0.75s ease-in-out infinite; }
+
 /* SIDEBAR */
 .sidebar {
   width: 270px; flex-shrink: 0;
