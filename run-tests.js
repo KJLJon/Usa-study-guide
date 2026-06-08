@@ -126,16 +126,21 @@ test('Two shuffles differ (probabilistic)', () => {
 // ─────────────────────────────────────────────────────────────────
 suite('quiz state machine');
 
+const POINTS_TABLE = [100, 50, 25];
+
 function makeQuiz() {
   const q = {
     queue: shuffle(FEATURES.map(f => f.id)), qIdx: 0,
-    score: 0, correctCount: 0, attemptsLeft: 3, answered: false,
+    score: 0, correctCount: 0, firstTryCount: 0, attemptsLeft: 3, answered: false,
     currentId() { return this.queue[this.qIdx]; },
     startQ() { this.answered = false; this.attemptsLeft = 3; },
     click(id) {
       if (this.answered) return 'ignored';
       if (id === this.currentId()) {
-        this.answered = true; this.score += 100; this.correctCount++;
+        const attemptsUsed = 3 - this.attemptsLeft;
+        const pts = POINTS_TABLE[attemptsUsed] ?? 0;
+        if (attemptsUsed === 0) this.firstTryCount++;
+        this.answered = true; this.score += pts; this.correctCount++;
         return 'correct';
       }
       this.attemptsLeft--;
@@ -147,8 +152,18 @@ function makeQuiz() {
   q.startQ(); return q;
 }
 
-test('Correct click awards 100 points', () => {
-  const q = makeQuiz(); eq(q.click(q.currentId()), 'correct'); eq(q.score, 100);
+test('Correct click awards 100 points (first try)', () => {
+  const q = makeQuiz(); eq(q.click(q.currentId()), 'correct'); eq(q.score, 100); eq(q.firstTryCount, 1);
+});
+test('Correct on 2nd try awards 50 points, no firstTryCount', () => {
+  const q = makeQuiz();
+  const w = FEATURES.find(f => f.id !== q.currentId()).id;
+  q.click(w); eq(q.click(q.currentId()), 'correct'); eq(q.score, 50); eq(q.firstTryCount, 0);
+});
+test('Correct on 3rd try awards 25 points, no firstTryCount', () => {
+  const q = makeQuiz();
+  const ws = FEATURES.filter(f => f.id !== q.currentId()).map(f => f.id);
+  q.click(ws[0]); q.click(ws[1]); eq(q.click(q.currentId()), 'correct'); eq(q.score, 25); eq(q.firstTryCount, 0);
 });
 test('Wrong click decrements attemptsLeft', () => {
   const q = makeQuiz();

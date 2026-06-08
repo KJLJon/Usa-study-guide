@@ -1,9 +1,9 @@
 // quiz.js — game logic
 
-const MAX_ATTEMPTS = 3;
-const POINTS_PER_Q  = 100;
+const MAX_ATTEMPTS  = 3;
+const POINTS_TABLE  = [100, 50, 25]; // points for 1st, 2nd, 3rd try
 
-let queue = [], qIdx = 0, score = 0, correctCount = 0;
+let queue = [], qIdx = 0, score = 0, correctCount = 0, firstTryCount = 0;
 let attemptsLeft = MAX_ATTEMPTS;
 let answered = false;
 let topScore = parseInt(localStorage.getItem('topScore') || '0', 10);
@@ -84,7 +84,7 @@ function showTitle() { showScreen('screen-title'); showTopScore(); }
 // ── GAME START ───────────────────────────────────────────────────────────────
 function startGame() {
   queue = shuffle(FEATURES.map(f => f.id));
-  qIdx = 0; score = 0; correctCount = 0;
+  qIdx = 0; score = 0; correctCount = 0; firstTryCount = 0;
   answered = false;
   correctlySolved.clear();
   document.getElementById('hist-list').innerHTML = '';
@@ -152,13 +152,16 @@ function onFeatureClick(clickedId) {
   const correctFeature = FEATURES.find(f => f.id === correctId);
 
   if (clickedId === correctId) {
+    const attemptsUsed = MAX_ATTEMPTS - attemptsLeft;
+    const pts = POINTS_TABLE[attemptsUsed] ?? 0;
     answered = true;
     correctlySolved.add(correctId);
     setFeatureState(correctId, 'correct');
-    score += POINTS_PER_Q;
+    if (attemptsUsed === 0) firstTryCount++;
     correctCount++;
+    score += pts;
     document.getElementById('score-display').textContent = score;
-    setFeedback(`✓ ¡Correcto! +${POINTS_PER_Q} puntos`, 'correct');
+    setFeedback(`✓ ¡Correcto! +${pts} puntos`, 'correct');
     addHistory(correctFeature, true);
     document.getElementById('btn-next').classList.remove('hidden');
   } else {
@@ -208,12 +211,12 @@ function nextQ() {
 
 // ── RESULTS ──────────────────────────────────────────────────────────────────
 function showResults() {
-  const pct   = Math.round((correctCount / FEATURES.length) * 100);
+  const pct   = Math.round((firstTryCount / FEATURES.length) * 100);
   const pctEl = document.getElementById('result-pct');
   pctEl.textContent = pct + '%';
   pctEl.className   = 'result-pct ' + (pct >= 80 ? 'green' : pct >= 55 ? 'gold' : 'red');
 
-  document.getElementById('stat-correct').textContent = correctCount;
+  document.getElementById('stat-correct').textContent = firstTryCount;
   document.getElementById('stat-score').textContent   = score;
 
   const newTop = document.getElementById('new-top-score');
